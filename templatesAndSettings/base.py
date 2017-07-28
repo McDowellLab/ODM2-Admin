@@ -9,39 +9,65 @@ https://docs.djangoproject.com/en/1.9/ref/settings/
 """
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
-from templatesAndSettings.settings import *
+import os
+
+APP_NAME = 'odm2admin'
+VERBOSE_NAME = 'ODM2CZOData'
 
 BASE_DIR = os.path.dirname(os.path.dirname(__file__))
+
+ROOT = os.path.dirname(BASE_DIR) # 'C:/Users/leonmi/Google Drive/ODM2Djangoadmin'
+
+# SECURITY WARNING: don't run with debug turned on in production!
+DEBUG = True
+
 TEMPLATE_DIR = os.path.dirname(__file__)
 TEMPLATE_DIR_APP = os.path.join(os.path.dirname(__file__), '..')
-TEMPLATE_PATH = os.path.join(TEMPLATE_DIR, 'templates')
+TEMPLATE_PATH = os.path.join(os.path.dirname(__file__), 'templates')
 # TEMPLATE_PATH2 = os.path.join(TEMPLATE_DIR, 'templates/odm2testapp')
 # print(TEMPLATE_PATH)
-TEMPLATE_DIRS = [TEMPLATE_PATH, ]  # TEMPLATE_PATH2,
+# TEMPLATE_DIRS = [TEMPLATE_PATH, ]  # TEMPLATE_PATH2,
+
+TEMPLATES = [{
+    'BACKEND': 'django.template.backends.django.DjangoTemplates',
+    'DIRS': [TEMPLATE_PATH, ],
+    'APP_DIRS': True,
+    'OPTIONS': {
+        # 'loaders': [(
+        #             'django.template.loaders.filesystem.Loader',
+        #             'django.template.loaders.app_directories.Loader',
+        #             'apptemplates.Loader',
+        #             ), ],
+        'debug': DEBUG,
+        'context_processors': [
+            'django.template.context_processors.media',
+            'django.template.context_processors.static',
+            'django.template.context_processors.debug',
+            'django.template.context_processors.request',
+            'django.contrib.auth.context_processors.auth',
+            'django.contrib.messages.context_processors.messages',
+        ],
+    },
+}]
 
 # TEMPLATE_LOADERS = ('django.template.loaders.filesystem.Loader',)
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/1.7/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = secret_key
+SECRET_KEY = 'random_secret_key_like_so_7472873649836'
 
-# SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = debug
+# TEMPLATE_DEBUG = TEMPLATE_DEBUG
 
-TEMPLATE_DEBUG = template_debug
-ADMINS = admins
-ALLOWED_HOSTS = []
+MEDIA_ROOT = '{}'.format(ROOT)
+MEDIA_URL = '/odm2testapp/upfiles/'
 
-MEDIA_ROOT = media_root
-MEDIA_URL = media_url
 # Application definition
-CUSTOM_TEMPLATE_PATH = custom_template_path
+CUSTOM_TEMPLATE_PATH = '/admin/{}/'.format(APP_NAME)
 # ADMIN_SHORTCUTS_PATH=admin_shortcuts_path
-URL_PATH = url_path
-STATIC_ROOT = static_root
-MAP_CONFIG = map_config
-DATA_DISCLAIMER = data_disclaimer
+URL_PATH = 'admin/'
+STATIC_ROOT = '{}/static'.format(ROOT)
+
 # https://github.com/mishbahr/django-modeladmin-reorder
 # {'app': 'auth', 'models': ('auth.User', 'auth.Group')},
 # ADMIN_REORDER = ('odm2testsite',
@@ -56,10 +82,11 @@ DATA_DISCLAIMER = data_disclaimer
 INSTALLED_APPS = (
     'jquery',
     'djangocms_admin_style',
-    '{}'.format(app_name),
+    '{}'.format(APP_NAME),
     'import_export',
     'admin_shortcuts',
     'daterange_filter',
+    'captcha',
     # 'dal',
     # 'dal_select2',
     'ajax_select',
@@ -73,11 +100,11 @@ INSTALLED_APPS = (
     # 'admin_reorder',
 
 )
-TEMPLATE_LOADERS = (
-    'django.template.loaders.filesystem.Loader',
-    'django.template.loaders.app_directories.Loader',
-    'apptemplates.Loader',
-)
+# TEMPLATE_LOADERS = (
+#     'django.template.loaders.filesystem.Loader',
+#     'django.template.loaders.app_directories.Loader',
+#     'apptemplates.Loader',
+# )
 # find icon images here https://github.com/alesdotio/
 # django-admin-shortcuts/blob/master/admin_shortcuts/
 # templatetags/admin_shortcuts_tags.py#L134
@@ -87,37 +114,37 @@ ADMIN_SHORTCUTS = [
         'shortcuts': [
             {
                 'url': CUSTOM_TEMPLATE_PATH,
-                'app_name': '{}'.format(app_name),
-                'title': '{} Admin'.format(verbose_name),
+                'app_name': '{}'.format(APP_NAME),
+                'title': '{} Admin'.format(VERBOSE_NAME),
                 'class': 'config',
             },
             {
                 'url': '/' + URL_PATH + 'AddSensor.html',
-                'app_name': '{}'.format(app_name),
+                'app_name': '{}'.format(APP_NAME),
                 'title': 'Add Sensor Data',
                 'class': 'tool',
             },
             {
                 'url': '/' + URL_PATH + 'AddProfile.html',
-                'app_name': '{}'.format(app_name),
+                'app_name': '{}'.format(APP_NAME),
                 'title': 'Add Soil Profile Data',
                 'class': 'flag',
             },
             {
                 'url': '/' + URL_PATH + 'RecordAction.html',
-                'app_name': '{}'.format(app_name),
+                'app_name': '{}'.format(APP_NAME),
                 'title': 'Record an Action',
                 'class': 'notepad',
             },
             {
                 'url': '/' + URL_PATH + 'ManageCitations.html',
-                'app_name': '{}'.format(app_name),
+                'app_name': '{}'.format(APP_NAME),
                 'title': 'Manage Citations',
                 'class': 'pencil',
             },
             {
                 'url': '/' + URL_PATH + 'chartIndex.html',
-                'app_name': '{}'.format(app_name),
+                'app_name': '{}'.format(APP_NAME),
                 'title': 'Graph My Data',
                 'class': 'monitor',
             },
@@ -131,22 +158,21 @@ ADMIN_SHORTCUTS_SETTINGS = {
 
 # https://github.com/crucialfelix/django-ajax-selects
 AJAX_LOOKUP_CHANNELS = dict(
-    cv_variable_name=('{}.lookups'.format(app_name), 'CvVariableNameLookup'),
-    cv_variable_type=('{}.lookups'.format(app_name), 'CvVariableTypeLookup'),
-    cv_unit_type=('{}.lookups'.format(app_name), 'CvUnitTypeLookup'),
-    cv_speciation=('{}.lookups'.format(app_name), 'CvVariableSpeciationLookup'),
-    featureaction_lookup=('{}.lookups'.format(app_name), 'FeatureactionsLookup'),
-    result_lookup=('{}.lookups'.format(app_name), 'ResultsLookup'),
-    profileresult_lookup=('{}.lookups'.format(app_name), 'ProfileResultsLookup'),
-    measurementresult_lookup=('{}.lookups'.format(app_name), 'MeasurementResultsLookup'),
-    timeseriesresult_lookup=('{}.lookups'.format(app_name), 'TimeseriesResultsLookup'),
-    cv_taxonomic_classifier_type=('{}.lookups'.format(app_name),
-                                  'CvTaxonomicClassifierTypeLookup'),
-    cv_method_type=('{}.lookups'.format(app_name), 'CvMethodTypeLookup'),
-    cv_action_type=('{}.lookups'.format(app_name), 'CvActionTypeLookup'),
-    cv_sampling_feature_type=('{}.lookups'.format(app_name), 'CvSamplingFeatureTypeLookup'),
-    cv_sampling_feature_geo_type=('{}.lookups'.format(app_name), 'CvSamplingFeatureGeoTypeLookup'),
-    cv_elevation_datum=('{}.lookups'.format(app_name), 'CvElevationDatumLookup'))
+    cv_variable_name=('{}.lookups'.format(APP_NAME), 'CvVariableNameLookup'),
+    cv_variable_type=('{}.lookups'.format(APP_NAME), 'CvVariableTypeLookup'),
+    cv_unit_type=('{}.lookups'.format(APP_NAME), 'CvUnitTypeLookup'),
+    cv_speciation=('{}.lookups'.format(APP_NAME), 'CvVariableSpeciationLookup'),
+    featureaction_lookup=('{}.lookups'.format(APP_NAME), 'FeatureactionsLookup'),
+    result_lookup=('{}.lookups'.format(APP_NAME), 'ResultsLookup'),
+    profileresult_lookup=('{}.lookups'.format(APP_NAME), 'ProfileResultsLookup'),
+    measurementresult_lookup=('{}.lookups'.format(APP_NAME), 'MeasurementResultsLookup'),
+    timeseriesresult_lookup=('{}.lookups'.format(APP_NAME), 'TimeseriesResultsLookup'),
+    cv_taxonomic_classifier_type=('{}.lookups'.format(APP_NAME), 'CvTaxonomicClassifierTypeLookup'),
+    cv_method_type=('{}.lookups'.format(APP_NAME), 'CvMethodTypeLookup'),
+    cv_action_type=('{}.lookups'.format(APP_NAME), 'CvActionTypeLookup'),
+    cv_sampling_feature_type=('{}.lookups'.format(APP_NAME), 'CvSamplingFeatureTypeLookup'),
+    cv_sampling_feature_geo_type=('{}.lookups'.format(APP_NAME), 'CvSamplingFeatureGeoTypeLookup'),
+    cv_elevation_datum=('{}.lookups'.format(APP_NAME), 'CvElevationDatumLookup'))
 
 MIDDLEWARE_CLASSES = (
     'django.contrib.sessions.middleware.SessionMiddleware',
@@ -167,15 +193,17 @@ WSGI_APPLICATION = 'templatesAndSettings.wsgi.application'
 # https://docs.djangoproject.com/en/1.9/ref/settings/#databases
 DATABASES = {
     'default': {
-        'ENGINE': ODM2_configs['ENGINE'],
-        'NAME': ODM2_configs['NAME'],
-        'USER': ODM2_configs['USER'],
-        'PASSWORD': ODM2_configs['PASSWORD'],
-        'HOST': ODM2_configs['HOST'],
-        'PORT': ODM2_configs['PORT'],
-        'OPTIONS': ODM2_configs['OPTIONS'],
-
-    }}
+        'ENGINE': 'django.contrib.gis.db.backends.postgis',
+        'NAME': 'odm2sample',
+        'USER': 'postgres',
+        'PASSWORD': 'password',
+        'HOST': 'localhost',
+        'PORT': '5432',
+        'OPTIONS': {
+            'options': '-c search_path=admin,odm2,odm2extra'
+        }
+    }
+}
 # Internationalization
 # https://docs.djangoproject.com/en/1.9/topics/i18n/
 
@@ -192,4 +220,4 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/1.9/howto/static-files/
 
-STATIC_URL = static_url
+STATIC_URL = '/static/'

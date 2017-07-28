@@ -59,6 +59,12 @@
             <td><a href="{{ prefixpath }}dataloggerfiles/add/" class="addlink">{% trans 'Add' %}</a></td>
             <td><a href="{{ prefixpath }}dataloggerfiles/" class="changelink">{% trans 'Change' %}</a></td>
         </tr>
+        <tr>
+            <th scope="row"><a href="{{ prefixpath }}dataloggerfilecolumns/">
+                {% trans 'link data logger file columns and data results' %}</a></th>
+            <td><a href="{{ prefixpath }}dataloggerfilecolumns/add/" class="addlink">{% trans 'Add' %}</a></td>
+            <td><a href="{{ prefixpath }}dataloggerfilecolumns/" class="changelink">{% trans 'Change' %}</a></td>
+        </tr>
         <th scope="row"><a href="{{ prefixpath }}processdataloggerfile/">
             {% trans 'Process your data logger file' %}</a></th>
         <td><a href="{{ prefixpath }}processdataloggerfile/add/" class="addlink">{% trans 'Add' %}</a></td>
@@ -66,7 +72,7 @@
         </tr>
 
         <tr>
-            <td class="section"><h1>Add a Sensor and It's Data</h1></td>
+            <td class="section"><h1>Add Equipment, Sensors and Data</h1></td>
         </tr>
         <tr>
             <th scope="row"><a href="{{ prefixpath }}organizations/">
@@ -75,17 +81,23 @@
             <td><a href="{{ prefixpath }}organizations/" class="changelink">{% trans 'Change' %}</a></td>
         </tr>
         <tr>
-            <th scope="row"><a href="{{ prefixpath }}equipmentmodels/">{% trans 'Add Sensor Model' %}</a></th>
+            <th scope="row"><a href="{{ prefixpath }}equipmentmodels/">{% trans 'Add Equipment Model' %}</a></th>
             <td><a href="{{ prefixpath }}equipmentmodels/add/" class="addlink">{% trans 'Add' %}</a></td>
             <td><a href="{{ prefixpath }}equipmentmodels/" class="changelink">{% trans 'Change' %}</a></td>
         </tr>
 
 
         <tr>
-            <th scope="row"><a href="{{ prefixpath }}samplingfeatures/">{% trans 'Add Location of Sensor' %}</a></th>
+            <th scope="row"><a href="{{ prefixpath }}samplingfeatures/">{% trans 'Add Location of Sensors or equipment' %}</a></th>
             <td><a href="{{ prefixpath }}samplingfeatures/add/" class="addlink">{% trans 'Add' %}</a></td>
             <td><a href="{{ prefixpath }}samplingfeatures/" class="changelink">{% trans 'Change' %}</a></td>
         </tr>
+        <tr>
+            <th scope="row"><a href="{{ prefixpath }}sites/">
+                {% trans 'Sites - sites have a sampling feature, sampling features of type site must have a site' %}</a></th>
+            <td><a href="{{ prefixpath }}sites/add/" class="addlink">{% trans 'Add' %}</a></td>
+            <td><a href="{{ prefixpath }}sites/" class="changelink">{% trans 'Change' %}</a></td>
+                    </tr>
         <tr>
             <td></td>
         </tr>
@@ -104,27 +116,33 @@
             <td><a href="{{ prefixpath }}units/" class="changelink">{% trans 'Change' %}</a></td>
         </tr>
         <tr>
-            <th scope="row"><a href="{{ prefixpath }}results/">{% trans 'Add Result' %}</a></th>
+            <th scope="row"><a href="{{ prefixpath }}results/">{% trans 'Add Data Result' %}</a></th>
             <td><a href="{{ prefixpath }}results/add/" class="addlink">{% trans 'Add' %}</a></td>
             <td><a href="{{ prefixpath }}results/" class="changelink">{% trans 'Change' %}</a></td>
         </tr>
         <tr>
             <th scope="row"><a href="{{ prefixpath }}methods/">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-                {% trans 'Add Sensor Observation Method (one per sensor model)' %}</a></th>
+                {% trans 'Add Equipment Depolyment Method (one per equipment model)' %}</a></th>
             <td><a href="{{ prefixpath }}methods/add/" class="addlink">{% trans 'Add' %}</a></td>
             <td><a href="{{ prefixpath }}methods/" class="changelink">{% trans 'Change' %}</a></td>
         </tr>
         <tr>
             <th scope="row"><a href="{{ prefixpath }}actions/">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-                {% trans 'Add Sensor Observation Action (one per sensor model)' %}</a></th>
+                {% trans 'Add Sensor Equipment Depolyment Action (one per equipment model)' %}</a></th>
             <td><a href="{{ prefixpath }}actions/add/" class="addlink">{% trans 'Add' %}</a></td>
             <td><a href="{{ prefixpath }}actions/" class="changelink">{% trans 'Change' %}</a></td>
         </tr>
         <tr>
-            <th scope="row"><a href="{{ prefixpath }}measurementresultvaluefile/">
-                {% trans 'Upload Sensor Data for a single column' %}</a></th>
-            <td><a href="{{ prefixpath }}measurementresultvaluefile/add/" class="addlink">{% trans 'Add' %}</a></td>
-            <td><a href="{{ prefixpath }}measurementresultvaluefile/" class="changelink">{% trans 'Change' %}</a></td>
+            <th scope="row"><a href="{{ prefixpath }}featureactions/">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                {% trans 'Add Feature Action' %}</a></th>
+            <td><a href="{{ prefixpath }}featureactions/add/" class="addlink">{% trans 'Add' %}</a></td>
+            <td><a href="{{ prefixpath }}featureactions/" class="changelink">{% trans 'Change' %}</a></td>
+        </tr>
+        <tr>
+            <th scope="row"><a href="{{ prefixpath }}instrumentoutputvariables/">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                {% trans 'Instrument output variables' %}</a></th>
+            <td><a href="{{ prefixpath }}instrumentoutputvariables/add/" class="addlink">{% trans 'Add' %}</a></td>
+            <td><a href="{{ prefixpath }}instrumentoutputvariables/" class="changelink">{% trans 'Change' %}</a></td>
         </tr>
     </table>
 
