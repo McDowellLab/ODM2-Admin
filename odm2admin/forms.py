@@ -1,5 +1,20 @@
 # from __future__ import unicode_literals
 # import compiler
+
+import os
+import stat
+import subprocess
+import sys
+import datetime as datetime
+from django.utils.crypto import get_random_string
+from django.core import management
+from django.core import serializers
+from django.core.management import settings
+from templatesAndSettings.settings import exportdb
+from django.http import HttpResponse
+from hs_restclient import HydroShare, HydroShareAuthOAuth2
+# from odm2admin.tasks import create_sqlite_export_celery
+
 from django.contrib.gis import forms, admin
 from django.contrib.gis.geos import GEOSGeometry
 from django.contrib import messages
@@ -75,9 +90,10 @@ from .models import Profileresultvalues
 # from .views import dataloggercolumnView
 from daterange_filter.filter import DateRangeFilter
 import re
+
 from .readonlyadmin import ReadOnlyAdmin
 from .listfilters import SamplingFeatureTypeListFilter
-
+# import pyproj
 
 # from .admin import MeasurementresultvaluesResource
 # AffiliationsChoiceField(People.objects.all().order_by('personlastname'),
@@ -213,6 +229,35 @@ class ResultsdataqualityAdmin(ReadOnlyAdmin):
 
     list_display = ('resultid', 'dataqualityid')
 
+
+
+class DatasetsresultsInlineAdminForm(ModelForm):
+    resultid = AutoCompleteSelectField('result_lookup', required=True,
+                                       help_text='A data result',
+                                       label='Data result',show_help_text =None)
+
+    class Meta:
+        model = Datasetsresults
+        fields = ['datasetid', 'bridgeid', 'resultid']
+
+class DatasetsResultsInline(admin.StackedInline):
+    model = Datasetsresults
+    form = DatasetsresultsInlineAdminForm
+    fieldsets = (
+        ('Details', {
+            'classes': ('collapse',),
+            'fields': ('datasetid', 'bridgeid', 'resultid'
+                       )
+        }),
+    )
+    extra = 0
+
+class ReadOnlyDatasetsResultsInline(DatasetsResultsInline):
+    readonly_fields = DatasetsResultsInline.fieldsets[0][1]['fields']
+    can_delete = False
+
+    def has_add_permission(self, request):
+        return False
 
 class DatasetsresultsAdminForm(ModelForm):
     resultid = make_ajax_field(Datasetsresults, 'resultid',
@@ -744,10 +789,12 @@ class SamplingfeaturesAdminForm(ModelForm):
                                 u'here: <a href="http://vocabulary.odm2.org/elevationdatum/" ' \
                                 u'target="_blank">http://vocabulary.odm2.org/elevationdatum/</a>'
     elevation_datum.allow_tags = True
-    featuregeometry = forms.PointField(label='Featuregeometry',
-                                       widget=forms.OpenLayersWidget(), required=False)
+    # featuregeometry is not working in production I think GDAL_DATA setting is needed but I'm not sure what to point
+    # it to. This was not working well in either case though.
+    # featuregeometry = forms.PointField(label='Featuregeometry',
+    #                                    widget=forms.OSMWidget(), required=False)
 
-    featuregeometry.initial = GEOSGeometry("POINT(0 0)")
+    # featuregeometry.initial = GEOSGeometry("POINT(0 0)")
 
 
 class SitesInline(admin.StackedInline):
@@ -1303,7 +1350,6 @@ class ResultderivationequationsAdmin(ReadOnlyAdmin):
                      'resultid__featureactionid__samplingfeatureid__samplingfeaturename',
                      'derivationequationid__derivationequation']
 
-
 def create_derived_values_event(ModelAdmin, request, queryset):
      StartDateProperty = Extensionproperties.objects.get(propertyname__icontains="start date")
      EndDateProperty = Extensionproperties.objects.get(propertyname__icontains="end date")
@@ -1421,8 +1467,263 @@ class FeatureactionsAdmin(ReadOnlyAdmin):
     search_fields = ['action__method__methodname', 'samplingfeatureid__samplingfeaturename']
 
 
+def createODM2SQLiteFile(results, dataset,request, username, password):
+    myresultSeriesExport = []
+
+    # for result in results:
+    # emailspreadsheet2(request, myresultSeriesExport, False)
+    # management.call_command('dump_object', 'odm2admin.Timeseriesresults', 17160, 17162, kitchensink=True)
+    sysout = sys.stdout
+    loc = settings.FIXTURE_DIR
+    # print(myresultSeriesExport.first())
+    startdate = None
+    enddate = None
+    site = None
+    lastsite = None
+    fixturecount = 0
+    # print('looping results')
+    for result in results:
+        myresultSeriesExport = Timeseriesresultvalues.objects.filter(resultid=result.resultid).order_by('valuedatetime')
+        # print('result count for:')
+        # print(result)
+        # print(myresultSeriesExport.count())
+        fixturecount += 1
+        tmpfixture1 = 'tmp' + str(fixturecount) + '.json'  # + random_string
+        sys.stdout = open(loc + tmpfixture1, 'w')
+        management.call_command('dump_object', 'odm2admin.CvOrganizationtype', '*', kitchensink=False)
+        sys.stdout.close()
+
+        fixturecount += 1
+        tmpfixture1 = 'tmp' + str(fixturecount) + '.json'  # + random_string
+        sys.stdout = open(loc + tmpfixture1, 'w')
+        if myresultSeriesExport.count() > 0:
+            startdate = myresultSeriesExport.first().valuedatetime
+            enddate = myresultSeriesExport.last().valuedatetime
+            management.call_command('dump_object', 'odm2admin.Timeseriesresultvalues',
+                                    myresultSeriesExport.first().valueid, kitchensink=True)
+            # site = Sites.objects.filter(samplingfeatureid=result.featureactionid.samplingfeatureid).get()
+            # if not site == lastsite:
+            #     sys.stdout.close()
+            #     sys.stdout = sysout
+            #     print(site)
+            #     print(site.samplingfeatureid.samplingfeatureid)
+            #     print(fixturecount)
+            #     fixturecount += 1
+            #     tmpfixture1 = 'tmp' + str(fixturecount) + '.json'  # + random_string
+            #     print(tmpfixture1)
+            #     sys.stdout = open(loc + tmpfixture1, 'w')
+            #     management.call_command('dump_object', 'odm2admin.Sites', '*', kitchensink=True)
+            #
+            # sys.stdout.close()
+            # lastsite = site
+        else:
+            myresultSeriesExport = Profileresultvalues.objects.filter(resultid=result.resultid)
+            # print(myresultSeriesExport.first().valueid)
+            # print(myresultSeriesExport.first())
+            if myresultSeriesExport.count() > 0:
+                management.call_command('dump_object', 'odm2admin.Profileresultvalues',
+                                        myresultSeriesExport.first().valueid, kitchensink=True)
+        sys.stdout.close()
+
+
+
+    fixturecount += 1
+    tmpfixture1 = 'tmp' + str(fixturecount) + '.json'  # + random_string
+    sys.stdout = open(loc + tmpfixture1, 'w')
+    management.call_command('dump_object', 'odm2admin.Datasets', dataset.datasetid, kitchensink=False)
+    sys.stdout.close()
+
+    fixturecount += 1
+    tmpfixture1 = 'tmp' + str(fixturecount) + '.json'  # + random_string
+    sys.stdout = open(loc + tmpfixture1, 'w')
+    management.call_command('dump_object', 'odm2admin.Sites', '*', kitchensink=False)
+    sys.stdout.close()
+
+    fixturecount += 1
+    tmpfixture1 = 'tmp' + str(fixturecount) + '.json'  # + random_string
+    sys.stdout = open(loc + tmpfixture1, 'w')
+    # codes = CvCensorcode.objects.all()
+    management.call_command('dump_object', 'odm2admin.CvCensorcode',
+                            '*', kitchensink=False)
+    sys.stdout.close()
+
+    fixturecount += 1
+    tmpfixture1 = 'tmp' + str(fixturecount) + '.json'  # + random_string
+    sys.stdout = open(loc + tmpfixture1, 'w')
+    management.call_command('dump_object', 'odm2admin.CvQualitycode',
+                            '*', kitchensink=False)
+
+    sys.stdout.close()
+
+    for result in results:
+        fixturecount += 1
+        tmpfixture1 = 'tmp' + str(fixturecount) + '.json'  # + random_string
+        sys.stdout = open(loc + tmpfixture1, 'w')
+        myresultSeriesExport = Timeseriesresultvalues.objects.filter(resultid=result.resultid)
+        if myresultSeriesExport.count() > 0:
+            sys.stdout.write(serializers.serialize("json", myresultSeriesExport[1:], indent=4,
+                                                   use_natural_foreign_keys=False, use_natural_primary_keys=False))
+        else:
+            myresultSeriesExport = Profileresultvalues.objects.filter(resultid=result.resultid)
+            if myresultSeriesExport.count() > 0:
+                sys.stdout.write(
+                    serializers.serialize("json", myresultSeriesExport[1:], indent=4, use_natural_foreign_keys=False,
+                                          use_natural_primary_keys=False))
+        sys.stdout.close()
+    sys.stdout = sysout
+
+    # settings.MAP_CONFIG['result_value_processing_levels_to_display']
+    # db_name = exportdb.DATABASES['export']['NAME']
+    # print(db_name)
+    # print(tmploc1)
+    database = ''
+
+    # management.call_command('loaddata',
+    #                        tmploc1 ,database=database)  # ,database='export'
+    # print('finished first file')
+    # management.call_command('loaddata',
+    #                        tmploc2,database=database)
+    # export_data.send(sender= Timeseriesresultvalues,tmploc1=tmploc1,tmploc2=tmploc2)
+    # management.call_command('create_sqlite_export',tmploc1,tmploc2, settings=exportdb)
+    # call('../')
+    # print(tmploc1)
+    # print(tmploc2)
+    dbfilepath = settings.TEMPLATE_DIR + '/ODM2SQliteBlank.sqlite'  # exportdb.DATABASES['default']['NAME']
+    path = os.path.dirname(dbfilepath)
+    dbfile = os.path.basename(dbfilepath)
+    dbfilename = os.path.splitext(dbfile)[0]
+    random_string = get_random_string(length=5)
+    dbfilename2 = dbfilename + random_string + ".sqlite"
+    dbfile2 = path + "/" + dbfilename + random_string + ".sqlite"
+    # command = ['python',  '/home/azureadmin/webapps/ODM2-AdminLCZO/manageexport.py', 'create_sqlite_export', tmploc1, tmploc2]
+    command = 'cp ' + dbfilepath + ' ' + dbfile2
+
+    response = subprocess.check_call(command, shell=True)
+    # write an extra settings file instead - have it contain just DATABASES; remove databases from exportdb.py and import new file. 2
+    # exportdb.DATABASES['export']['NAME'] = dbfile2
+    # print(sys.path)
+    # oldexportdb = path + '/templatesAndSettings/settings/exportdb.py'
+    # copyexportdb = path + '/templatesAndSettings/settings/exportdbold.py'
+    # command = 'cp ' + oldexportdb + ' ' + copyexportdb
+
+    # response = subprocess.check_call(command, shell=True)
+    # sys.stdout = open(oldexportdb)
+    command = 'cp ' + dbfilepath + ' ' + str(dbfile2)
+    # exportsettings = "DATABASES = { \n" + \
+    #                  "'default': { \n" + \
+    #                  "'ENGINE': 'django.db.backends.sqlite3','NAME':'" + settings.TEMPLATE_DIR + dbfile2 + "',}, 'export': {'ENGINE': 'django.db.backends.sqlite3','NAME':'" + settings.TEMPLATE_DIR + dbfile2 + "',}}"
+    # print(exportsettings)
+    sys.stdout = sysout
+    sys.stdout = open(path + '/templatesAndSettings/scripts/create_sqlite_file2.sh', 'w')
+    # / home / miguelcleon / webapps / odm2admin2 / manageexport.py
+    # create_sqlite_export
+    # sys.stdout = sysout
+    commandstring = '#!/usr/bin/env bash \n'
+
+    commandstring += settings.PYTHON_EXEC + ' '  # sys.executable
+
+    commandstring += path + '/manageexport.py'
+    commandstring += ' create_sqlite_export2 '
+    commandstring += dbfile2 + ' '
+    fixturelist = []
+    for x in range(1, fixturecount + 1):
+        tmpfixture1 = 'tmp' + str(x) + '.json'  # + random_string
+        commandstring += loc + tmpfixture1 + ' '
+        fixturelist.append(loc + tmpfixture1)
+
+    commandstring += ' > ' + path + '/templatesAndSettings/logging/sqlite_export.log \n'
+    print(commandstring)
+    user = request.user.get_full_name()
+
+    try:
+        startdate = datetime.datetime.strptime(str(startdate), '%Y-%m-%d %H:%M:%S').strftime('%Y-%m-%d')
+    except ValueError:
+        startdate = datetime.datetime.strptime(str(startdate), '%Y-%m-%d %H:%M:%S.$f').strftime('%Y-%m-%d')
+    try:
+        enddate = datetime.datetime.strptime(str(enddate), '%Y-%m-%d %H:%M:%S').strftime('%Y-%m-%d')
+    except ValueError:
+        enddate = datetime.datetime.strptime(str(enddate), '%Y-%m-%d %H:%M:%S.$f').strftime('%Y-%m-%d')
+
+    hydrosharecommand = settings.PYTHON_EXEC + ' '  # sys.executable
+
+    hydrosharecommand += path + "/manageexport.py"
+    hydrosharecommand += " create_hydroshare_resource '" + username + "' '" + password + "' '" +\
+                         user + "' '" + dataset.datasettitle + "' '" + startdate + "' '" + enddate +\
+                         "' " + dbfile2 + " " + dbfilename2
+    hydrosharecommand += ' > ' + path + '/templatesAndSettings/logging/hydroshare_export.log \n'
+    print(hydrosharecommand)
+    # cpcommand = 'cp ' + copyexportdb  + ' ' +  oldexportdb
+    # print(cpcommand)
+    command = path + '/templatesAndSettings/scripts/create_sqlite_file2.sh'  # + dbfile2 + ' %>> ' + settings.BASE_DIR +'/logging/sqlite_export.log'
+    st = os.stat(command)
+    sys.stdout = sysout
+    try:
+        os.chmod(command, st.st_mode | stat.S_IEXEC)
+    except OSError as e:
+        print(e)
+        pass
+    # print(command)
+    sys.stdout = sysout
+    print(commandstring)
+    # instead of running the .sh file here use incrontab to check if the file create_sqlite_file2.sh changed and execute it.
+
+    args = [command]
+    # os.execv('sudo bash',args) # command_path
+    # os.execv(settings.PYTHON_EXEC, [settings.PYTHON_EXEC] +commandstring)
+    # print("response")
+    # print(response)
+    # command = 'cp ' + copyexportdb + ' ' + oldexportdb
+
+    # response = subprocess.check_call(command,shell=True)
+    # print(exportdb.DATABASES['default']['NAME'])
+
+    return myresultSeriesExport, startdate, enddate, fixturecount, dbfile2, dbfilename2
+
+
+def export_to_hydroshare(request, results, datasets):
+    username = None
+    password = None
+    auth = None
+
+    if 'hydroshareUsername' in request.POST and 'hydrosharePassword' in request.POST:
+        hs_client_id = settings.SOCIAL_AUTH_HYDROSHARE_UP_KEY
+        hs_client_secret = settings.SOCIAL_AUTH_HYDROSHARE_UP_SECRET
+        username = request.POST['hydroshareUsername']
+        password = request.POST['hydrosharePassword']
+        auth = HydroShareAuthOAuth2(hs_client_id, hs_client_secret,
+                                    username=username, password=password)
+
+    valuestoexport, startdate, enddate, \
+    fixturecount, dbfiletoupload, dbfilename2 = createODM2SQLiteFile(
+        results, datasets, request, username, password)
+    # print(username)
+    # print(password)
+    export_complete = True
+    resource_link = ''
+    messages.info(request,'request in being processed. It may take a few minutes' +\
+                          ', or longer depending on the size of your dataset, for your Hydroshare resource to appear. ')
+    return HttpResponse({'prefixpath': settings.CUSTOM_TEMPLATE_PATH,
+                         'export_complete': export_complete,
+                         'username': username,
+                         'resource_link': resource_link, }, content_type='application/json')
+
+
+def publish_dataset_to_hydroshare(ModelAdmin, request, queryset):
+    results = None
+    for dataset in queryset:
+        relateddatasetresults = Datasetsresults.objects.filter(datasetid=dataset)
+        results = Results.objects.filter(resultid__in=relateddatasetresults.values('resultid'))
+        print('result count')
+        print(results.count())
+        export_to_hydroshare(request, results, dataset)
+
+
+publish_dataset_to_hydroshare.short_description = "export dataset results as a hydroshare resource. "
+
+
 class DatasetsAdminForm(ModelForm):
     datasetabstract = forms.CharField(max_length=5000, widget=forms.Textarea)
+
 
     class Meta:
         model = Datasets
@@ -1432,11 +1733,12 @@ class DatasetsAdminForm(ModelForm):
 class DatasetsAdmin(ReadOnlyAdmin):
     # For readonly usergroup
     user_readonly = [p.name for p in Datasets._meta.get_fields() if not p.one_to_many]
-    user_readonly_inlines = list()
+    user_readonly_inlines = [ReadOnlyDatasetsResultsInline]
+    actions = [publish_dataset_to_hydroshare]
 
     # For admin users
     form = DatasetsAdminForm
-    inlines_list = list()
+    inlines_list = [DatasetsResultsInline]
 
     list_display = ['datasetcode', 'datasettitle', 'datasettypecv']
 
@@ -1502,8 +1804,9 @@ class ActionsAdmin(ReadOnlyAdmin):
     inlines_list = [FeatureActionsInline, actionByInLine]
 
     def method_link(self, obj):
-        return u'<a href="{0}methods/{1}/">{2}</a>'.format(settings.CUSTOM_TEMPLATE_PATH,
-                                                            obj.method.methodid, obj.method.methodname)
+        return format_html('<a href="{0}methods/{1}/">{2}</a>'.format(settings.CUSTOM_TEMPLATE_PATH,
+                                                            obj.method.methodid, obj.method.methodname))
+
 
     list_display = ('action_type', 'method_link', 'begindatetime', 'enddatetime')
     list_display_links = ('action_type',)
@@ -2261,7 +2564,7 @@ class MeasurementresultvalueFileAdmin(ReadOnlyAdmin):
 
 
 class UnitsAdminForm(ModelForm):
-    unit_type = make_ajax_field(Units, 'unit_type', 'cv_unit_type')
+    unit_type = make_ajax_field(Units, 'unit_type', 'cv_units_type')
     unit_type.help_text = u'A vocabulary for describing the type of the Unit or ' \
                           u'the more general quantity that the Unit ' \
                           u'represents. View unit type details here ' \

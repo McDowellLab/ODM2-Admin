@@ -11,7 +11,7 @@ in an annotation. The annotation can then also indicate the reason why the value
 instrument was out of calibration.
 
 Let's try it out, we are going to visit the data annotation page for a measurement of water temperature
-at the Rio Espiritu Santo Stream House (RESSH), from the `map <https://dev-odm2admin.cuahsi.org/Sandbox/mapdata.html>`_
+at the Rio Espiritu Santo Stream House (RESSH), from the `map <http://odm2admin.cuahsi.org/Sandbox/mapdata.html>`_
 this is a sampling feature of type 'Stream Gage' labeled RESSH.
 
    .. image:: /images/RioEspirituSantoStreamGage.png
@@ -21,7 +21,7 @@ From Here follow the link to the water temperture read by either the pressure tr
 
    .. image:: /images/SelectWaterTempToAnnotate.png
 
-https://dev-odm2admin.cuahsi.org/Sandbox/graphfa/samplingfeature=776/resultidu=16657/popup=Anno/
+http://odm2admin.cuahsi.org/Sandbox/graphfa/samplingfeature=776/resultidu=16657/popup=Anno/
 
 You can select some of the points by dragging a selection box around them, it should look like this:
 
@@ -36,6 +36,13 @@ Number (NAN).
 Our Annotated data will then look something like this:
 
   .. image:: /images/AnnotatedData.png
+
+You can also add or subtract an offset value to a set of points or drift correct them. Drift correcting points will
+apply a linear correction so that the first or last point (depending if you select forward or backward) will have the
+value entered. The remaining values you selected will have an offset added to them. This offset is proportional to the
+points position in the set of points selected.
+
+  .. image:: /images/offsetanddriftcorrect.png
 
 :ref:`5) Data visualization and URL parameters <Data-Visualization>`
 

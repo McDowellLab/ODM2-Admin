@@ -18,8 +18,10 @@ RUN apt-get update --fix-missing && apt-get install --yes apt-utils postgresql-c
 
 EXPOSE 8000
 
-RUN git clone "https://github.com/miguelcleon/ODM2-Admin"
-RUN cd ODM2-Admin && latest=$(git describe --tags) && git checkout ${latest}
+# && latest=$(git describe --tags) && git checkout ${latest}
+RUN git clone "https://github.com/ODM2/ODM2-Admin"
+RUN cd ODM2-Admin
+
 
 WORKDIR /ODM2-Admin
 
