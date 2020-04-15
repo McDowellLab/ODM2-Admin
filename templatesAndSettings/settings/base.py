@@ -7,6 +7,7 @@ import os
 
 """ NAMES CONFIGURATION """
 APP_NAME = "odm2admin" # This has to match the name of the folder that the app is saved
+SITE_NAME = "odm2admin" # sometimes you might need the Django app name to be different from your URL path (this is the URL path name).             
 VERBOSE_NAME = "ODM2 Admin"
 
 SITE_HEADER = "ODM2 Admin"
@@ -58,6 +59,8 @@ TEMPLATES = [{
             'django.template.context_processors.request',
             'django.contrib.auth.context_processors.auth',
             'django.contrib.messages.context_processors.messages',
+            'social_django.context_processors.backends',
+            'social_django.context_processors.login_redirect',
         ],
     },
 }]
@@ -102,36 +105,62 @@ USE_TZ = True
 
 """ MEDIA CONFIGURATION """
 # Absolute filesystem path to the directory that will hold user-uploaded files.
-MEDIA_ROOT = '{}/{}/upfiles/'.format(BASE_DIR, APP_NAME)
-# URL that handles the media served from MEDIA_ROOT.
+MEDIA_ROOT = '{}/{}/upfiles/'.format(BASE_DIR, SITE_NAME)
+#  URL that handles the media served from MEDIA_ROOT.
 MEDIA_URL = '/{}/{}/media/'.format(os.path.basename(BASE_DIR), APP_NAME)
 """ END MEDIA CONFIGURATION """
-
+# Absolute filesystem path to the directory that will hold database export and import files
+FIXTURE_DIR = '{}/fixtures/'.format(BASE_DIR)
 
 """ STATIC FILE CONFIGURATION """
 # Absolute path to the directory static files should be collected to. Don't put
 # anything in this directory yourself; store your static files in apps' static/
 # subdirectories and in STATICFILES_DIRS.
-# STATIC_ROOT = '{}/{}/static'.format(BASE_DIR, APP_NAME)
-STATIC_DIR = '{}/{}/static'.format(BASE_DIR, APP_NAME)
-STATICFILES_DIRS = [STATIC_DIR]
+STATIC_ROOT = '{}/{}/static'.format(BASE_DIR, SITE_NAME)
 # URL prefix for static files.
 STATIC_URL = '/static/'
 """ END STATIC FILE CONFIGURATION """
-
+""" END PATH CONFIGURATION """
 
 """ MIDDLEWARE CONFIGURATION """
-MIDDLEWARE_CLASSES = (
+MIDDLEWARE = (
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
+    #'corsheaders.middleware.CorsMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
+    'social_django.middleware.SocialAuthExceptionMiddleware',
     # 'django.contrib.auth.middleware.SessionAuthenticationMiddleware', didn't work in production
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     # 'admin_reorder.middleware.ModelAdminReorder',
 )
 """ END MIDDLEWARE CONFIGURATION """
+
+""" OAUTH SETTINGS """
+AUTHENTICATION_BACKENDS = (
+    'social_core.backends.open_id.OpenIdAuth',
+    'social_core.backends.google.GoogleOpenId',
+    'social_core.backends.google.GoogleOAuth2',
+    #'odm2admin.hydroshare_backend.HydroShareOAuth2',
+    'social_core.backends.google.GoogleOAuth',
+    'django.contrib.auth.backends.ModelBackend',
+)
+# Oauth CORS_ORIGIN_ALLOW_ALL = True
+
+SOCIAL_AUTH_URL_NAMESPACE = 'social'
+SOCIAL_AUTH_PIPELINE = (
+    'social_core.pipeline.social_auth.social_details',
+    'social_core.pipeline.social_auth.social_uid',
+    'social_core.pipeline.social_auth.social_user',
+    'social_core.pipeline.user.get_username',
+    'social_core.pipeline.user.create_user',
+    'social_core.pipeline.social_auth.associate_user',
+    'social_core.pipeline.social_auth.load_extra_data',
+    'social_core.pipeline.user.user_details',
+    'social_core.pipeline.social_auth.associate_by_email',
+)
+""" END OAUTH SETTINGS """
 
 """ URL AND WSGI CONFIGURATION """
 ROOT_URLCONF = 'templatesAndSettings.urls'
@@ -145,12 +174,14 @@ INSTALLED_APPS = (
     'djangocms_admin_style',
     '{}'.format(APP_NAME),
     'import_export',
-    'admin_shortcuts',
+    'social_django',
     'daterange_filter',
     'captcha',
+    'fixture_magic',
     # 'dal',
     # 'dal_select2',
     'ajax_select',
+    'admin_shortcuts',
     'django.contrib.admin',
     'django.contrib.gis',
     'django.contrib.auth',
@@ -163,7 +194,6 @@ INSTALLED_APPS = (
 )
 """ END APP CONFIGURATION """
 
-
 """ ADMIN SHORTCUTS CONFIGURATION """
 ADMIN_SHORTCUTS = [
     {
@@ -171,39 +201,39 @@ ADMIN_SHORTCUTS = [
         'shortcuts': [
             {
                 'url': CUSTOM_TEMPLATE_PATH,
-                'app_name': '{}'.format(APP_NAME),
+                'app_name': '{}'.format(SITE_NAME),
                 'title': '{}'.format(VERBOSE_NAME),
-                'class': 'config',
+                'icon': 'cogs',
             },
             {
-                'url': '/' + 'AddSensor',
-                'app_name': '{}'.format(APP_NAME),
+                'url': '/' + SITE_NAME + '/' + 'AddSensor',
+                'app_name': '{}'.format(SITE_NAME),
                 'title': 'Add Sensor Data',
-                'class': 'tool',
+                'icon': 'wrench', # tool
             },
             {
-                'url': '/' + 'AddProfile',
-                'app_name': '{}'.format(APP_NAME),
+                'url': '/' + SITE_NAME + '/' + 'AddProfile',
+                'app_name': '{}'.format(SITE_NAME),
                 'title': 'Add Soil Profile Data',
-                'class': 'flag',
+                'icon': 'flag',
             },
             {
-                'url': '/' + 'RecordAction',
-                'app_name': '{}'.format(APP_NAME),
+                'url': '/' + SITE_NAME + '/' + 'RecordAction',
+                'app_name': '{}'.format(SITE_NAME),
                 'title': 'Record an Action',
-                'class': 'notepad',
+                'icon': 'sticky-note',
             },
             {
-                'url': '/' + 'ManageCitations',
-                'app_name': '{}'.format(APP_NAME),
+                'url': '/' + SITE_NAME + '/' + 'ManageCitations',
+                'app_name': '{}'.format(SITE_NAME),
                 'title': 'Manage Citations',
-                'class': 'pencil',
+                'icon': 'edit',
             },
             {
-                'url': '/' + 'chartIndex',
-                'app_name': '{}'.format(APP_NAME),
-                'title': 'Graph My Data',
-                'class': 'monitor',
+                'url': '/' + SITE_NAME + '/' + 'chartIndex',
+                'app_name': '{}'.format(SITE_NAME),
+                'title': 'Map My Data',
+                'icon': 'map-marked-alt',
             },
         ]
     },
@@ -211,30 +241,11 @@ ADMIN_SHORTCUTS = [
 ADMIN_SHORTCUTS_SETTINGS = {
     'hide_app_list': False,
     'open_new_window': False,
+    'show_on_all_pages': True,
 }
 """ END ADMIN SHORTCUTS CONFIGURATION """
 
 
-""" AJAX LOOKUPS CONFIGURATION """
-AJAX_LOOKUP_CHANNELS = dict(
-    cv_variable_name=('{}.lookups'.format(APP_NAME), 'CvVariableNameLookup'),
-    cv_variable_type=('{}.lookups'.format(APP_NAME), 'CvVariableTypeLookup'),
-    cv_unit_type=('{}.lookups'.format(APP_NAME), 'CvUnitTypeLookup'),
-    cv_speciation=('{}.lookups'.format(APP_NAME), 'CvVariableSpeciationLookup'),
-    featureaction_lookup=('{}.lookups'.format(APP_NAME), 'FeatureactionsLookup'),
-    result_lookup=('{}.lookups'.format(APP_NAME), 'ResultsLookup'),
-    profileresult_lookup=('{}.lookups'.format(APP_NAME), 'ProfileResultsLookup'),
-    measurementresult_lookup=('{}.lookups'.format(APP_NAME), 'MeasurementResultsLookup'),
-    timeseriesresult_lookup=('{}.lookups'.format(APP_NAME), 'TimeseriesResultsLookup'),
-    sampling_feature_lookup=('{}.lookups'.format(APP_NAME), 'SamplingFeatureLookup'),
-    cv_taxonomic_classifier_type=('{}.lookups'.format(APP_NAME), 'CvTaxonomicClassifierTypeLookup'),
-    cv_method_type=('{}.lookups'.format(APP_NAME), 'CvMethodTypeLookup'),
-    cv_site_type=('{}.lookups'.format(APP_NAME), 'CvSitetypeLookup'),
-    cv_action_type=('{}.lookups'.format(APP_NAME), 'CvActionTypeLookup'),
-    cv_sampling_feature_type=('{}.lookups'.format(APP_NAME), 'CvSamplingFeatureTypeLookup'),
-    cv_sampling_feature_geo_type=('{}.lookups'.format(APP_NAME), 'CvSamplingFeatureGeoTypeLookup'),
-    cv_elevation_datum=('{}.lookups'.format(APP_NAME), 'CvElevationDatumLookup'))
-""" END AJAX LOOKUPS CONFIGURATION """
 
 """ SAMPLING FEATURE TYPE LEGEND MAPPING """
 LEGEND_MAP = {
@@ -261,3 +272,19 @@ LEGEND_MAP = {
                          style_class="awesome-marker-icon-cadetblue")
     }
 """ END SAMPLING FEATURE TYPE LEGEND MAPPING """
+
+""" REDIS CACHING CONFIGURATION """
+CACHES = {
+    "default": {
+        "BACKEND": "django_redis.cache.RedisCache",
+        "LOCATION": "redis://127.0.0.1:6379/1",
+        "OPTIONS": {
+            "CLIENT_CLASS": "django_redis.client.DefaultClient"
+        },
+        "KEY_PREFIX": "odm2admin"
+    }
+}
+
+# Cache time to live is 15 minutes.
+CACHE_TTL = 60 * 15
+""" END REDIS CACHING CONFIGURATION"""

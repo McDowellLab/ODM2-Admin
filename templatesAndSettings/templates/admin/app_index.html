@@ -1,7 +1,6 @@
 {% extends "admin/app_index.html" %}
 
 {% load admin_extras %}
-{% load admin_shortcuts_mod %}
 {% load static %}
 {% load i18n admin_static admin_shortcuts_tags %}
 {# django-admin-shortcuts changes these blocks #}
@@ -19,7 +18,7 @@
             </div>
         {% else %}
             <div class="admin_shortcuts">
-                {% admin_shortcuts_filter %}
+                {% admin_shortcuts %}
             </div>
         {% endif %}
         {% endfor %}
@@ -56,7 +55,12 @@
                 </div>
             {% endfor %}
         {% endif %}
-        <div>
+            <p><h2> &nbsp;&nbsp;For details about the forms below see the docs:
+                <a target="_blank" href="http://odm2.github.io/ODM2-Admin/ODM2AdminAdministration.html">
+                    ODM2 Admin documention on github IO</a></h2>
+
+            </p>
+            <div>
             <div class="app-ODM2CZOData module">
                 <table>
                     <caption>

@@ -21,7 +21,87 @@ option {
 
 //$.getJSON('/er/poll/'+question_id ,function(data) {
 $(document).ready(function(){
+    jQuery.ajaxSettings.traditional = true;
+	$('#to_hydroshare').click(function(){
+	    console.log('hydro share button');
+	    var startDate = $("#startDate").val();
+		var endDate = $("#endDate").val();
+		var username = $('#hydroshareUsername').val();
+		var password = $('#hydrosharePassword').val();
+		var useDateselm =  document.getElementById("useDates"); //$("#useDates").val();
+		var useDates = useDateselm.checked;
+		var hydrosharebutton = document.getElementById("to_hydroshare"); 
+		console.log(hydrosharebutton);
+		hydrosharebutton.firstChild.data = "exporting to hydroshare";
+		var resultSeriesExport = [];
+		$(".action-checkbox-column:checked").each(function(){
+			console.log($(this).val());
+			resultSeriesExport.push($(this).val());
+		});
+		console.log(startDate);
+		console.log(username);
+		console.log(password);
+		console.log(resultSeriesExport);
+		$.ajax({
+				url: "{{prefixpath}}../export_to_hydroshare/",
+				type: "POST",
+				data: {
+					'startDate': startDate,
+					'endDate': endDate,
+					'hydroshareusername' : username,
+					'hydrosharepassword' : password,
+					'useDates': useDates,
+					'exportdata': true,
+					'publishdata': false,
+					'myresultSeriesExport[]': resultSeriesExport,
+					'csrfmiddlewaretoken': '{{ csrf_token }}', 
+				},
+				complete : function(json) {
+					var hydrosharebutton = document.getElementById("to_hydroshare");
+					hydrosharebutton.firstChild.data = "export complete";
+        },
+		});
+	});
+	$('#to_publish').click(function(){
+	    console.log('hydro share button');
+	    var startDate = $("#startDate").val();
+		var endDate = $("#endDate").val();
+		var username = $('#hydroshareUsername').val();
+		var password = $('#hydrosharePassword').val();
+		var useDateselm =  document.getElementById("useDates"); //$("#useDates").val();
+		var useDates = useDateselm.checked;
+		var hydrosharebutton = document.getElementById("to_hydroshare"); 
+		//console.log(hydrosharebutton);
+		//console.log('result series');
+		//console.log(resultSeriesExport);
+		hydrosharebutton.firstChild.data = "exporting to hydroshare";
+		var resultSeriesExport = [];
+		$(".action-checkbox-column:checked").each(function(){
+			console.log($(this).val());
+			resultSeriesExport.push($(this).val());
+		});
+		$.ajax({
+				url: "{{prefixpath}}../export_to_hydroshare/",
+				type: "POST",
+				data: {
+					'startDate': startDate,
+					'endDate': endDate,
+					'hydroshareusername' : username,
+					'hydrosharepassword' : password,
+					'useDates': useDates,
+					'exportdata': false,
+					'publishdata': true,
+					'myresultSeriesExport[]': resultSeriesExport,
+					'csrfmiddlewaretoken': '{{ csrf_token }}', 
+				},
+				complete : function(json) {
+					var hydrosharebutton = document.getElementById("to_hydroshare");
+					hydrosharebutton.firstChild.data = "export complete";
+        },
+		});
+	});
 	$('#email_data').click(function(){
+		//console.log('email button pushed');
 		var outEmail = $("#outEmail").val();
 		var startDate = $("#startDate").val();
 		var email_data = true;
@@ -30,8 +110,15 @@ $(document).ready(function(){
 		var useDates = useDateselm.checked;
 		var g_recaptcha_response = $("#g-recaptcha-response").val();
 		var myresultSeriesExport = {{SelectedResults|safe}};
+		var resultSeriesExport = [];
+		$(".action-checkbox-column:checked").each(function(){
+			resultSeriesExport.push($(this).val());
+		});
+		//console.log('result series');
+		//console.log(resultSeriesExport);
 		var emailbutton = document.getElementById("email_data"); //$("#email_data");
 		emailbutton.firstChild.data = "emailing data";
+        //console.log('emailing');
 		$.ajax({
 				url: "{{prefixpath}}../emaildata/",
 				type: "POST",
@@ -42,10 +129,11 @@ $(document).ready(function(){
 					'endDate': endDate,
 					'useDates': useDates,
 					'g_recaptcha_response': g_recaptcha_response,
-					'myresultSeriesExport[]': myresultSeriesExport,
-					'csrfmiddlewaretoken': '{{ csrf_token }}', 
+					'myresultSeriesExport[]': resultSeriesExport,
+					'csrfmiddlewaretoken': '{{ csrf_token }}',
 				},
-				success : function(json) {
+				complete : function(json) {
+                    //console.log('email sent');
 					var emailbutton = document.getElementById("email_data"); //$("#email_data");
 					emailbutton.firstChild.data = "email sent";
         },
@@ -58,8 +146,7 @@ $(document).ready(function(){
 <br>
     
 	<form action="" method="post">
-	{% csrf_token %} 
-	
+	{% csrf_token %}
 	<table >
 	{% for method in methods %}
 	<tr><td>
@@ -77,26 +164,73 @@ $(document).ready(function(){
 			End Date (format YYYY-MM-DD HH:MM) </input>
 			
 			<input type="submit" name="update_chart" value="Update Chart" />
+			
+			<button  type="button" name="to_publish"  id="to_publish"/>Publish Data</button>
 			</td></tr>
-			<tr><td><div class="g-recaptcha" data-sitekey="6LdYnQ8UAAAAAI38kvlrKy4kF28VMYWnGO4dDjPA"></div>
+			<!--<tr><td>-->
+			<!--Username: <input id="hydroshareUsername" maxlength="100" name="hydroshareUsername" type="text"></input>-->
+			<!--Password: <input id="hydrosharePassword" maxlength="100" name="hydrosharePassword" type="password"></input>-->
+			<!--<button  type="button" name="to_hydroshare"  id="to_hydroshare"/>Upload To Hydroshare</button>-->
+			<!--</td></tr>-->
+			{% if authenticated %}
+			<tr><td><div class="g-recaptcha" data-sitekey="6Lc8RA8UAAAAAOG9JmCk7CSGIZG-js4PkmB8xFL9"></div>
 			use dates to filter data in email: <input id="useDates" type="checkbox" name="useDates" checked></input>
 			&nbsp; &nbsp; Send data to this email address: <input id="outEmail" maxlength="100" name="outEmail" type="text"> </input>
-			<button type="button" id="email_data" name="email_data">Email Data</button>
-			
+				<button type="button" id="email_data" name="email_data">Email Data</button>
+			{% endif %}
 			</td></tr>
 	
 {% if emailsent %}
 <p>Email request received, email will be delivered to {{outEmail}}</p>			
 {% endif %}
-
+{% ifequal methodsOnly "False" %}
+	<p> Data available from: {{startDate}} to: {{endDate}} </p>
+{% endifequal %}
 	</td></tr></table>
 
 	<div id="" style="overflow:scroll; height:400px;">
+	{% if mergeResults %}
+		<p> graph by variable </p>
+		<table >
+
+			<table >
+			{% for varname,results in resultListGrouped.items %}
+
+
+
+				<tr >
+					{% for result in results %}
+					{% if not done == 1 %}
+						{% for Result in resultList %}
+								{% if result == Result.resultid %}
+
+											<th ><input type="checkbox" class="action-checkbox-column" id="sMerged"
+											{% for SelectedResult in SelectedResults %}
+												{% if Result.resultid == SelectedResult %}
+													checked
+												{% endif %}
+											{% endfor %}
+											name="Mergedselection{{ forloop.counter0 }}" value="{{ results }}">{{ Result.feature_action }} </input><br></th>
+
+								{% endif %}
+						{% endfor %}
+
+					<th scope="col">Result IDs: {{results}}</th>
+				<th scope="col">Variable: {{varname}}</th></tr>
+						{% endif %}
+					{% assign done 1 %}
+
+					{% endfor %}
+
+			{% endfor %}
+			</table>
+		{% endif %}
 	<table >
 				<tr ><th scope="col" class="section">Result Series</td>
 				<th scope="col"  class="sortable column-resultid">id</th>
 				<th scope="col"  class="sortable column-resultid">Variable</th>
 				<th scope="col"  class="sortable column-resultid">Units</th>
+				<th scope="col"  class="sortable column-resultid">Time Interval</th>
 				<th scope="col"  class="sortable column-resultid">Location</th>
 				<th scope="col"  class="sortable column-resultid">Method</th>
 				<th scope="col"  class="sortable column-resultid">Processing Level</th>
@@ -117,6 +251,7 @@ $(document).ready(function(){
 										<td >{{Result.resultid}}</td>
 										<td >{{Result.variableid.variablecode}}</td>
 										<td >{{Result.unitsid}}</td>
+										<td >{{Result.timeinterval}} {{Result.timeintervalunits}}</td>
 										<td >{{Result.featureactionid.samplingfeatureid}}</td>
 										<td >{{Result.featureactionid.action.method.methodcode}}</td>
 										<td > {{Result.processing_level}}</td>

@@ -1,6 +1,5 @@
 {% extends "admin/base_site.html" %}
 {% load admin_extras %}
-{% load admin_shortcuts_mod %}
 {% load static %}
 {% load i18n  admin_shortcuts_tags %}
 
@@ -35,22 +34,10 @@
 {% endblock %}
 
 {% block breadcrumbs %}
-    {% if not user.groups.all.0 %}
+ {% if authenticated %}
         <div class="admin_shortcuts">
             {% admin_shortcuts %}
         </div>
-    {% else %}
-        {% for group in user.groups.all %}
-        {% if group.name != 'readonly' %}
-            <div class="admin_shortcuts">
-                {% admin_shortcuts %}
-            </div>
-        {% else %}
-            <div class="admin_shortcuts">
-                {% admin_shortcuts_filter %}
-            </div>
-        {% endif %}
-    {% endfor %}
     {% endif %}
 {% endblock %}
 
@@ -60,7 +47,13 @@
 
         <div class="app-odm2testapp module">
             <table>
-
+				<tr>
+                    <td class="section"><h1>Sensor Dashboard</h1></td>
+                </tr>
+				<tr>
+                    <th scope="row"><a href="sensordashboard/featureaction={{featureaction}}/">
+                        {% trans 'Sensor Dashboard' %}</a></th>
+                </tr>
                 <tr>
                     <td class="section"><h1>Graphs</h1></td>
                 </tr>

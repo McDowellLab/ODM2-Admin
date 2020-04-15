@@ -2,12 +2,25 @@
 Development settings and globals.
 """
 
-from base import *
+from .base import *
 
 """ DEBUG CONFIGURATION """
 # Disable debugging by default.
 DEBUG = True
 """ END DEBUG CONFIGURATION """
+
+""" EXTRA VARIABLES CONFIGURATION -"""
+EXPORTDB = False #  if set to true this will use Camel case table names for SQLite
+UTC_OFFSET = -4
+#Needed for Hydroshare integration
+PYTHON_EXEC='/home/bitnami/miniconda3/envs/odm2adminenv/bin/python'
+""" EXTRA VARIABLES CONFIGURATION """
+
+""" TRAVIS CONFIGURATION """
+TRAVIS_ENVIRONMENT = False
+if 'TRAVIS' in os.environ:
+    TRAVIS_ENVIRONMENT = True
+""" END TRAVIS CONFIGURATION """
 
 """ ALLOWED HOSTS CONFIGURATION """
 ALLOWED_HOSTS = ['127.0.0.1',]
@@ -25,39 +38,73 @@ EMAIL_USE_TLS = True
 EMAIL_PORT = 123
 """ EMAIL CONFIGURATION """
 
-
 """ DATABASE CONFIGURATION """
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.contrib.gis.db.backends.postgis',
-        'NAME': 'db_name',
-        'USER': 'user',
-        'PASSWORD': 'password',
-        'HOST': 'localhost',
-        'PORT': '5432',
-        'OPTIONS': {
-            'options': '-c search_path=public,admin,odm2,odm2extra'
+if TRAVIS_ENVIRONMENT:
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.postgresql',
+            'NAME': 'test',  # Must match travis.yml setting
+            'USER': 'postgres',
+            'PASSWORD': '',
+            'HOST': 'localhost',
+            'PORT': '',
         }
     }
-}
+else:
+
+    DATABASES = {
+        'export': {  # export
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': 'ODM2SQliteBlank.db',
+        },
+            'default': {
+                'ENGINE': 'django.contrib.gis.db.backends.postgis',
+                'NAME': 'db_name',
+                'USER': 'user',
+                'PASSWORD': 'password',
+                'HOST': 'localhost',
+                'PORT': '5432',
+                'OPTIONS': {
+                    'options': '-c search_path=public,admin,odm2,odm2extra'
+                }
+
+        },
+        'published': {
+            'ENGINE': 'django.contrib.gis.db.backends.postgis',
+            'NAME': 'db_name_published',
+            'USER': 'user',
+            'PASSWORD': 'password',
+            'HOST': 'localhost',
+            'PORT': '5432',
+            'OPTIONS': {
+                'options': '-c search_path=public,admin,odm2,odm2extra'
+            }
+        }
+    }
 """ END DATABASE CONFIGURATION """
 
+""" SENSOR DASHBOARD CONFIGURATION """
+
+SENSOR_DASHBOARD = {
+    "time_series_days": 30,
+    "featureactionids": [1699, 1784,1782,1701],
+}
+""" END SENSOR DASHBOARD CONFIGURATION"""
 
 """ MAP CONFIGURATION """
 MAP_CONFIG = {
     "lat": 0,
     "lon": 0,
     "zoom": 2,
-    "cluster_sites": False,
-    "time_series_months": 3,
-    "cluster_feature_types": ['Profile','Specimen','Excavation','Field area',
-                             'Ecological land classification','Transect'],
+    "cluster_feature_types": ['Profile','Specimen','Excavation','Field area'],
+    "time_series_months": 1,
     "display_titles": True,
     "MapBox": {
       "access_token": 'mapbox accessToken'
     },
     "result_value_processing_levels_to_display": [1, 2, 3],
-    "feature_types": ['Site','Profile','Specimen']
+    "feature_types": ['Site','Profile','Specimen','Excavation','Field area',
+                  'Weather station','Observation well','Stream gage','Transect']
 }
 """ END MAP CONFIGURATION """
 
@@ -66,7 +113,6 @@ MAP_CONFIG = {
 DATA_DISCLAIMER = {
     "text" : "Add a link discribing where your data come from",
     "linktext" : "The name of my site",
-    "link" : "http://mysiteswegpage.page/"
-
+    "link" : "http://mysiteswegpage.page/",
 }
 """ END DATA DISCLAIMER CONFIGURATION """
